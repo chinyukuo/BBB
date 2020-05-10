@@ -2,11 +2,12 @@ import urllib.request as r
 import json
 import os
 import requests
+import datetime
 #from bs4 import BeautifulSoup
 #import jsonpath
 #開啟照片用
 
-url = "https://www.instagram.com/explore/tags/taipeicafe/?__a=1"
+url = "https://www.instagram.com/explore/tags/taipei/?__a=1"
 request = r.Request(url, headers={
     "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.106 Safari/537.36"
 })
@@ -33,18 +34,32 @@ origin_jsonObj = json.dumps(dictObj,sort_keys=True,indent=4)
 print("整理好的json")
 print(origin_jsonObj)
 dict_obj = json.loads(origin_jsonObj)
+#2020/5/4
 print("python_dict:",dict_obj)
 print(type(dict_obj))
 print("利用loads()將json轉成python的字典")
 print("再從字典中抓取照片網址")
-picture_url = dict_obj["graphql"]["hashtag"]["edge_hashtag_to_media"]["edges"][0]["node"]["display_url"]
+#picture_url = dict_obj["graphql"]["hashtag"]["edge_hashtag_to_media"]["edges"][0]["node"]["display_url"]
+counter = 0
+picture_url = []
+for i in range(10):
+    picture_url.append(i)
 
+for counter in range(10):
+    picture_url[counter] = dict_obj["graphql"]["hashtag"]["edge_hashtag_to_media"]["edges"][counter]["node"]["display_url"]
 #[hashtag][edge_hashtag_to_media][edges][node][display_url]
-print(picture_url)
+print(picture_url[0])
 
 #下載圖片
-destDir = 'D:\git\photo/'
-img = requests.get(picture_url)
-#把jpg名稱改掉
-with open(destDir + 'a.jpg' , 'wb') as f:
-    f.write(img.content)
+#2020/5/11改以時間命名下載的圖片
+#改成一次抓取多張hashtag 照片
+now = datetime.datetime.now()
+
+for i in range(10):
+    jpg_name = now.strftime("%m_%d_%Y_%H_%M_%S")
+    i_as_string = str(i)
+    jpg_name = jpg_name + i_as_string + ".jpg"
+    destDir = 'D:\git\photo/'
+    img = requests.get(picture_url[i])
+    with open(destDir + jpg_name , 'wb') as f:
+        f.write(img.content)
