@@ -8,6 +8,10 @@ import datetime
 #開啟照片用
 
 url = "https://www.instagram.com/explore/tags/taipei/?__a=1"
+#取得hahtag名稱
+#可以再找更好方式
+spilt_url = url.split('/')
+hashtag = spilt_url[5]
 request = r.Request(url, headers={
     "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.106 Safari/537.36"
 })
@@ -48,18 +52,20 @@ for i in range(10):
 for counter in range(10):
     picture_url[counter] = dict_obj["graphql"]["hashtag"]["edge_hashtag_to_media"]["edges"][counter]["node"]["display_url"]
 #[hashtag][edge_hashtag_to_media][edges][node][display_url]
-print(picture_url[0])
 
 #下載圖片
 #2020/5/11改以時間命名下載的圖片
 #改成一次抓取多張hashtag 照片
+print("抓取圖片")
 now = datetime.datetime.now()
 
 for i in range(10):
-    jpg_name = now.strftime("%m_%d_%Y_%H_%M_%S")
+    jpg_name = now.strftime("%Y_%m_%d_%H_%M_%S")
     i_as_string = str(i)
-    jpg_name = jpg_name + i_as_string + ".jpg"
+    #用hashtag標籤和時間命名圖片
+    jpg_name = hashtag + "_" + jpg_name + "_" + i_as_string + ".jpg"
     destDir = 'D:\git\photo/'
     img = requests.get(picture_url[i])
     with open(destDir + jpg_name , 'wb') as f:
         f.write(img.content)
+
