@@ -5,6 +5,11 @@ Created on Wed Oct 21 20:31:06 2020
 @author: Asus
 
 crawler 整合
+109.11.09加入資料庫連接
+
+需要新增
+需更改ig地點
+add a function auto run parse mobile01 every area
 
 """
 
@@ -14,6 +19,8 @@ import codecs
 import datetime
 import requests
 import time
+import mysql.connector
+from mysql.connector import Error
 
 def choose_city():
     print('選擇地區')
@@ -71,7 +78,7 @@ def load_json():
 def parseig_location():
     arr = []
     end_cursor = '' # empty for the 1st page
-    tag = 'taipei' # your tag
+    tag = 'taipei' # tag
     page_count = 1 # desired number of pages
     for i in range(0, page_count):
         url = "https://www.instagram.com/explore/tags/{0}/?__a=1&max_id={1}".format(tag, end_cursor)
@@ -138,11 +145,59 @@ def read_json():
     print('done')
     #把json縮牌以方便找到需要的資訊
 
+def link_database(): 
+    try:
+    # 連接 MySQL/MariaDB 資料庫
+        connection = mysql.connector.connect(
+            host='localhost',          # 主機名稱
+            database='bbb', # 資料庫名稱
+            user='root',        # 帳號
+            password='1234')  # 密碼
+
+        if connection.is_connected():
+
+        # 顯示資料庫版本
+            db_Info = connection.get_server_info()
+            print("資料庫版本：", db_Info)
+
+
+            view_ids = []
+            sql = "SELECT * FROM `location`"
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            for (view_id,picture,view_name) in cursor:
+                print("view_id: %d" % view_id)
+                view_ids.append(view_id)
+            view_id = max(view_ids) + 1
+            view_name = "小豐年公園"
+            #INSERT INTO `location` (`view_id`, `picture`, `view_name`) VALUES ('16', NULL, '復興崗');
+            sql = "INSERT INTO `location` (`view_id`, `picture`, `view_name`) VALUES (" + "'" + str(view_id) + "'" + ", NULL, "+"'"+ view_name + "'" + ");"
+            print(sql)
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            connection.commit()
+            sql = "SELECT * FROM `location`"
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            for (view_id,picture,view_name) in cursor:
+                print("view_id: %d" % view_id)
+                print("view_name: %s" % view_name)
+
+    except Error as e:
+        print("資料庫連接失敗：", e)
+
+    finally:
+        if (connection.is_connected()):
+            cursor.close()
+            connection.close()
+            print("資料庫連線已關閉")
         
 if __name__ == '__main__':
     print("1.mobile01")
     print("2.ig_location")
     print("3.ig_one_post_json")
+    print("4.test link database")
+    print("0.exit")
     chose_function = int(input("want to do"))
     if chose_function == 1:
         parseMobile01()
@@ -150,6 +205,10 @@ if __name__ == '__main__':
         parseig_location()
     elif chose_function == 3:
         read_json()
+    elif chose_function == 4:
+        link_database()
+    elif chose_function == 0:
+        print('doing nothing')
     else :
         print("no function")
 
